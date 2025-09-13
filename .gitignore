@@ -1,0 +1,17 @@
+# Symfony
+/app/var/
+/app/vendor/
+/app/.env.local
+/app/.env.local.php
+
+# Node (на майбутнє)
+node_modules/
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+
+# Docker
+db-data/
