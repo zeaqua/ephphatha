@@ -11,13 +11,16 @@ FROM base AS dev
 
 # ===== prod =====
 FROM base AS prod
+ENV APP_ENV=prod \
+    COMPOSER_ALLOW_SUPERUSER=1
+
 COPY ./app /var/www/html/app
 WORKDIR /var/www/html/app
 
-RUN composer install --no-dev --prefer-dist --no-progress --no-interaction \
-    && php bin/console cache:clear --env=prod \
-    && php bin/console cache:warmup --env=prod \
-    && chown -R www-data:www-data var
+RUN composer install --no-dev --prefer-dist --no-progress --no-interaction --optimize-autoloader \
+ && php bin/console cache:clear --env=prod \
+ && php bin/console cache:warmup --env=prod \
+ && chown -R www-data:www-data var
 
 FROM php:8.3-fpm-alpine AS runtime
 RUN apk add --no-cache icu-dev oniguruma-dev libpq-dev \
