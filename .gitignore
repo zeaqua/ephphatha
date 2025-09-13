@@ -1,6 +1,7 @@
 # Symfony
 /app/var/
 /app/vendor/
+/app/.env.prod
 /app/.env.local
 /app/.env.local.php
 
