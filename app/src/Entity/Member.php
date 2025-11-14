@@ -2,13 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\MembersRepository;
+use App\Repository\MemberRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTime;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: MembersRepository::class)]
-class Member
+#[ORM\Entity(repositoryClass: MemberRepository::class)]
+class Member implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -29,6 +31,18 @@ class Member
 
     #[ORM\Column]
     private ?DateTime $lastUpdate = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $email = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $password = null;
+
+    #[ORM\Column(length: 64, nullable: true)]
+    private ?string $apiToken = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?DateTime $apiTokenExpiresAt = null;
 
     public function getId(): ?int
     {
@@ -95,6 +109,54 @@ class Member
         return $this;
     }
 
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): static
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): static
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getApiToken(): ?string
+    {
+        return $this->apiToken;
+    }
+
+    public function setApiToken(?string $token): self
+    {
+        $this->apiToken = $token;
+
+        return $this;
+    }
+
+    public function getApiTokenExpiresAt(): ?DateTime
+    {
+        return $this->apiTokenExpiresAt;
+    }
+
+    public function setApiTokenExpiresAt(?DateTime $date): self
+    {
+        $this->apiTokenExpiresAt = $date;
+
+        return $this;
+    }
+
     public function toArray(): array
     {
         return [
@@ -103,7 +165,22 @@ class Member
             'birth_date' => $this->getBirthDate()->format('Y-m-d'),
             'bapt_date' => $this->getBaptDate()?->format('Y-m-d'),
             'active' => $this->getActive(),
+            'email' => $this->getEmail(),
             'last_update' => $this->getLastUpdate()->format('Y-m-d H:i:s'),
         ];
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->getEmail();
+    }
+
+    public function getRoles(): array
+    {
+        return ['ROLE_USER'];
+    }
+
+    public function eraseCredentials(): void
+    {
     }
 }

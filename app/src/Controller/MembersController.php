@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Member;
-use App\Repository\MembersRepository;
+use App\Repository\MemberRepository;
 use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,7 +16,7 @@ use Throwable;
 final class MembersController extends AbstractController
 {
     #[Route(name: 'app_member_index', methods: ['GET'])]
-    public function index(MembersRepository $memberRepository): JsonResponse
+    public function list(MemberRepository $memberRepository): JsonResponse
     {
         return $this->json([
             'members' => $memberRepository->findAll(),
@@ -24,7 +24,7 @@ final class MembersController extends AbstractController
     }
 
     #[Route('/{id}', methods: ['GET'])]
-    public function show(Member $member): jsonResponse
+    public function getById(Member $member): jsonResponse
     {
         return $this->json($member->toArray(), 201);
     }
@@ -46,14 +46,21 @@ final class MembersController extends AbstractController
             return $this->json(['error' => 'Invalid birth_date format, expected YYYY-MM-DD'], 422);
         }
 
+        if (!empty($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            return $this->json(['error' => 'Invalid email'], 422);
+        }
+
         $member = new Member();
-        $member->setName($name)->setBirthDate($birthDate);
+        $member
+            ->setName($name)
+            ->setBirthDate($birthDate)
+            ->setEmail($data['email'] ?? null);
 
         if (!empty($data['bapt_date'])) {
             try {
                 $member->setBaptDate(new DateTime($data['bapt_date']));
             } catch (Throwable) {
-                return $this->json(['error' => 'Invalid baptDate format'], 422);
+                return $this->json(['error' => 'Invalid bapt_date format'], 422);
             }
         }
 
