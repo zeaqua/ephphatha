@@ -18,9 +18,11 @@ final class MembersController extends AbstractController
     #[Route(name: 'app_member_index', methods: ['GET'])]
     public function list(MemberRepository $memberRepository): JsonResponse
     {
-        return $this->json([
-            'members' => $memberRepository->findAll(),
-        ]);
+        $members = $memberRepository->findAll();
+
+        return $this->json(
+            array_map(fn(Member $member) => $member->toArray(), $members)
+        );
     }
 
     #[Route('/{id}', methods: ['GET'])]
