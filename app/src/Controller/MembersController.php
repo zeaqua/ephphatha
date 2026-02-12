@@ -61,6 +61,13 @@ final class MembersController extends AbstractController
             ->setAddress($data['address'] ?? null)
             ->setComment($data['comment'] ?? null);
 
+        if (!empty($data['pastor_id'])) {
+            $pastor = $entityManager->getRepository(Member::class)->find($data['pastor_id']);
+            if ($pastor) {
+                $member->setPastor($pastor);
+            }
+        }
+
         if (!empty($data['bapt_date'])) {
             try {
                 $member->setBaptDate(new DateTime($data['bapt_date']));
