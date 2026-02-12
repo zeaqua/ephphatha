@@ -44,6 +44,15 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $apiTokenExpiresAt = null;
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $phone = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $address = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $comment = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -157,6 +166,42 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getPhone(): ?string
+    {
+        return $this->phone;
+    }
+
+    public function setPhone(?string $phone): static
+    {
+        $this->phone = $phone;
+
+        return $this;
+    }
+
+    public function getAddress(): ?string
+    {
+        return $this->address;
+    }
+
+    public function setAddress(?string $address): static
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    public function getComment(): ?string
+    {
+        return $this->comment;
+    }
+
+    public function setComment(?string $comment): static
+    {
+        $this->comment = $comment;
+
+        return $this;
+    }
+
     public function toArray(): array
     {
         return [
@@ -166,6 +211,9 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
             'bapt_date' => $this->getBaptDate()?->format('Y-m-d'),
             'active' => $this->getActive(),
             'email' => $this->getEmail(),
+            'phone' => $this->getPhone(),
+            'address' => $this->getAddress(),
+            'comment' => $this->getComment(),
             'last_update' => $this->getLastUpdate()->format('Y-m-d H:i:s'),
         ];
     }

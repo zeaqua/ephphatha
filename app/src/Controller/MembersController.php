@@ -56,7 +56,10 @@ final class MembersController extends AbstractController
         $member
             ->setName($name)
             ->setBirthDate($birthDate)
-            ->setEmail($data['email'] ?? null);
+            ->setEmail($data['email'] ?? null)
+            ->setPhone($data['phone'] ?? null)
+            ->setAddress($data['address'] ?? null)
+            ->setComment($data['comment'] ?? null);
 
         if (!empty($data['bapt_date'])) {
             try {
