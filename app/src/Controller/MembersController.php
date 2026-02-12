@@ -68,6 +68,13 @@ final class MembersController extends AbstractController
             }
         }
 
+        if (!empty($data['diakon_id'])) {
+            $diakon = $entityManager->getRepository(Member::class)->find($data['diakon_id']);
+            if ($diakon) {
+                $member->setDiakon($diakon);
+            }
+        }
+
         if (!empty($data['bapt_date'])) {
             try {
                 $member->setBaptDate(new DateTime($data['bapt_date']));

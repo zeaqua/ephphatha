@@ -57,6 +57,10 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(name: 'pastor_id', referencedColumnName: 'id', nullable: true)]
     private ?self $pastor = null;
 
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(name: 'diakon_id', referencedColumnName: 'id', nullable: true)]
+    private ?self $diakon = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -218,6 +222,18 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getDiakon(): ?self
+    {
+        return $this->diakon;
+    }
+
+    public function setDiakon(?self $diakon): static
+    {
+        $this->diakon = $diakon;
+
+        return $this;
+    }
+
     public function toArray(): array
     {
         return [
@@ -231,6 +247,7 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
             'address' => $this->getAddress(),
             'comment' => $this->getComment(),
             'pastor' => $this->getPastor()?->getName(),
+            'diakon' => $this->getDiakon()?->getName(),
             'last_update' => $this->getLastUpdate()->format('Y-m-d H:i:s'),
         ];
     }
