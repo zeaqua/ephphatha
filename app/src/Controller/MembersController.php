@@ -12,10 +12,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Throwable;
 
-#[Route('/api/members')]
 final class MembersController extends AbstractController
 {
-    #[Route(name: 'app_member_index', methods: ['GET'])]
+    #[Route('/api/roles', name: 'app_roles', methods: ['GET'])]
+    public function getRoles(): JsonResponse
+    {
+        return $this->json([
+            Member::ROLE_CHURCH_MEMBER,
+            Member::ROLE_DEACON,
+            Member::ROLE_PRESBYTER,
+        ]);
+    }
+
+    #[Route('/api/members', name: 'app_member_index', methods: ['GET'])]
     public function list(MemberRepository $memberRepository): JsonResponse
     {
         $members = $memberRepository->findAll();
@@ -25,13 +34,13 @@ final class MembersController extends AbstractController
         );
     }
 
-    #[Route('/{id}', methods: ['GET'])]
+    #[Route('/api/members/{id}', methods: ['GET'])]
     public function getById(Member $member): jsonResponse
     {
         return $this->json($member->toArray(), 201);
     }
 
-    #[Route('/add', methods: ['POST'])]
+    #[Route('/api/members/add', methods: ['POST'])]
     public function add(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = $request->request->all();
@@ -94,17 +103,7 @@ final class MembersController extends AbstractController
         return $this->json(['id' => $member->getId()], 201);
     }
 
-    #[Route('/roles', name: 'app_roles', methods: ['GET'])]
-    public function getRoles(): JsonResponse
-    {
-        return $this->json([
-            Member::ROLE_CHURCH_MEMBER,
-            Member::ROLE_DEACON,
-            Member::ROLE_PRESBYTER,
-        ]);
-    }
-
-    #[Route('/edit/{id}', methods: ['POST', 'PUT'])]
+    #[Route('/api/members/edit/{id}', methods: ['POST', 'PUT'])]
     public function edit(Member $member, Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $data = $request->request->all();
