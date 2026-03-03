@@ -61,6 +61,8 @@ final class MembersController extends AbstractController
             ->setAddress($data['address'] ?? null)
             ->setComment($data['comment'] ?? null);
 
+        $member->setChurchRole(Member::ROLE_CHURCH_MEMBER);
+
         if (!empty($data['pastor_id'])) {
             $pastor = $entityManager->getRepository(Member::class)->find($data['pastor_id']);
             if ($pastor) {
@@ -90,6 +92,16 @@ final class MembersController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['id' => $member->getId()], 201);
+    }
+
+    #[Route('/roles', name: 'app_roles', methods: ['GET'])]
+    public function getRoles(): JsonResponse
+    {
+        return $this->json([
+            Member::ROLE_CHURCH_MEMBER,
+            Member::ROLE_DEACON,
+            Member::ROLE_PRESBYTER,
+        ]);
     }
 
     #[Route('/edit/{id}', methods: ['POST', 'PUT'])]
@@ -130,6 +142,14 @@ final class MembersController extends AbstractController
 
         if (isset($data['comment'])) {
             $member->setComment($data['comment'] ?: null);
+        }
+
+        if (isset($data['role'])) {
+            $validRoles = [Member::ROLE_CHURCH_MEMBER, Member::ROLE_DEACON, Member::ROLE_PRESBYTER];
+            if (!in_array($data['role'], $validRoles)) {
+                return $this->json(['error' => 'Invalid role'], 422);
+            }
+            $member->setChurchRole($data['role']);
         }
 
         if (isset($data['active'])) {

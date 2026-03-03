@@ -12,6 +12,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity(repositoryClass: MemberRepository::class)]
 class Member implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    public const ROLE_CHURCH_MEMBER = 'Член церкви';
+    public const ROLE_DEACON = 'Диякон';
+    public const ROLE_PRESBYTER = 'Пресвітер';
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -52,6 +56,9 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
+
+    #[ORM\Column(length: 50)]
+    private ?string $churchRole = self::ROLE_CHURCH_MEMBER;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(name: 'pastor_id', referencedColumnName: 'id', nullable: true)]
@@ -210,6 +217,18 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function getChurchRole(): ?string
+    {
+        return $this->churchRole;
+    }
+
+    public function setChurchRole(string $churchRole): static
+    {
+        $this->churchRole = $churchRole;
+
+        return $this;
+    }
+
     public function getPastor(): ?self
     {
         return $this->pastor;
@@ -246,6 +265,7 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
             'phone' => $this->getPhone(),
             'address' => $this->getAddress(),
             'comment' => $this->getComment(),
+            'role' => $this->getChurchRole(),
             'pastor' => $this->getPastor()?->getName(),
             'diakon' => $this->getDiakon()?->getName(),
             'last_update' => $this->getLastUpdate()->format('Y-m-d H:i:s'),
