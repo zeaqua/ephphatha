@@ -21,6 +21,18 @@ APP_SECRET=... DATABASE_URL=... POSTGRES_PASSWORD=... \
   docker compose -f docker-compose.prod.yml up -d --build
 ```
 
+## Тести
+
+Функціональні тести API на PHPUnit (`app/tests/`). Вони працюють з **локальною** базою `ephphatha_test` у контейнері `db` (див. `app/.env.test`), а не з робочою. Перед кожним тестом схема бази створюється заново.
+
+```bash
+# один раз: створити тестову базу
+docker compose exec app php bin/console doctrine:database:create --env=test --if-not-exists
+
+# запуск
+docker compose exec app php vendor/bin/phpunit
+```
+
 ---
 
 # API
