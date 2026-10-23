@@ -48,7 +48,7 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?DateTime $apiTokenExpiresAt = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 20)]
     private ?string $phone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -186,7 +186,7 @@ class Member implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->phone;
     }
 
-    public function setPhone(?string $phone): static
+    public function setPhone(string $phone): static
     {
         $this->phone = $phone;
 

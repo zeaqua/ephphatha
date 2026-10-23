@@ -125,7 +125,7 @@ curl -X POST http://localhost:8080/auth \
 | `bapt_date` | string \| null | Дата хрещення |
 | `active` | int | `1` — активний, `0` — неактивний |
 | `email` | string \| null | Email |
-| `phone` | string \| null | Телефон |
+| `phone` | string | Телефон у форматі `+{цифри}` |
 | `address` | string \| null | Адреса |
 | `comment` | string \| null | Коментар |
 | `role` | string | Церковна роль (див. `/api/roles`) |
@@ -159,7 +159,7 @@ curl http://localhost:8080/api/members -H "Authorization: Bearer $TOKEN"
 | `birth_date` | date | так | |
 | `bapt_date` | date | ні | |
 | `email` | string | ні | Має бути валідним email |
-| `phone` | string | ні | |
+| `phone` | string | так | Нормалізується до `+{цифри}` (див. нижче) |
 | `address` | string | ні | |
 | `comment` | string | ні | |
 | `active` | int | ні | За замовчуванням `1` |
@@ -169,7 +169,7 @@ curl http://localhost:8080/api/members -H "Authorization: Bearer $TOKEN"
 ```bash
 curl -X POST http://localhost:8080/api/members/add \
   -H "Authorization: Bearer $TOKEN" \
-  -d name="Іван Петренко" -d birth_date=1990-05-12 -d email=ivan@example.com
+  -d name="Іван Петренко" -d birth_date=1990-05-12 -d phone=+380501234567 -d email=ivan@example.com
 ```
 
 **201 Created**
@@ -177,19 +177,21 @@ curl -X POST http://localhost:8080/api/members/add \
 { "id": 1 }
 ```
 
-Помилки: `422` — не передано `name`/`birth_date`, невірний формат дати або email.
+Помилки: `422` — не передано обов'язкові поля (`Required fields are missing: name, phone`), невірний формат дати, email або телефону.
+
+**Телефон.** Пробіли, дефіси, дужки та крапки прибираються, префікс `00` замінюється на `+`, на початку завжди `+`. Після цього номер має містити від 7 до 15 цифр, інакше — `422`. Приклад: `+380 (50) 123-45-67` → `+380501234567`.
 
 ### `POST|PUT /api/members/edit/{id}`
 
-Часткове оновлення: змінюються лише передані поля. Порожнє значення очищає необов'язкове поле.
+Часткове оновлення: змінюються лише передані поля. Порожнє значення очищає необов'язкове поле. Обов'язкові поля (`name`, `birth_date`, `phone`) очистити не можна: `422 Fields cannot be empty: ...`.
 
 | Поле | Тип | Опис |
 |------|-----|------|
 | `name` | string | Не може бути порожнім |
-| `birth_date` | date | |
+| `birth_date` | date | Не може бути порожнім |
 | `bapt_date` | date | Порожнє значення — очистити |
 | `email` | string | Порожнє — очистити; інакше має бути валідним |
-| `phone` | string | Порожнє — очистити |
+| `phone` | string | Не може бути порожнім; нормалізується до `+{цифри}` |
 | `address` | string | Порожнє — очистити |
 | `comment` | string | Порожнє — очистити |
 | `role` | string | Одне зі значень `/api/roles` |
@@ -208,6 +210,6 @@ curl -X PUT http://localhost:8080/api/members/edit/1 \
 { "status": "success" }
 ```
 
-Помилки: `404` — член не знайдений; `422` — порожнє ім'я, невірна дата, email або роль.
+Помилки: `404` — член не знайдений; `422` — порожнє обов'язкове поле, невірна дата, email, телефон або роль.
 
 > Для `PUT` тіло треба надсилати як `application/x-www-form-urlencoded`: `multipart/form-data` для `PUT` PHP не розбирає, і поля будуть проігноровані. З `POST` працюють обидва формати.

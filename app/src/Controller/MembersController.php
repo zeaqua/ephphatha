@@ -14,6 +14,8 @@ use Throwable;
 
 final class MembersController extends AbstractController
 {
+    private const REQUIRED_FIELDS = ['name', 'birth_date', 'phone'];
+
     #[Route('/api/roles', name: 'app_roles', methods: ['GET'])]
     public function getRoles(): JsonResponse
     {
@@ -45,11 +47,13 @@ final class MembersController extends AbstractController
     {
         $data = $request->request->all();
 
-        $name = trim($data['name'] ?? '');
-        $birth = $data['birth_date'] ?? '';
-        if ($name === '' || $birth === '') {
-            return $this->json(['error' => 'name and birth_date are required (YYYY-MM-DD)'], 422);
+        $missingFields = $this->findEmptyRequiredFields($data);
+        if ($missingFields) {
+            return $this->json(['error' => 'Required fields are missing: ' . implode(', ', $missingFields)], 422);
         }
+
+        $name = trim($data['name']);
+        $birth = $data['birth_date'];
 
         try {
             $birthDate = new DateTime($birth);
@@ -61,12 +65,17 @@ final class MembersController extends AbstractController
             return $this->json(['error' => 'Invalid email'], 422);
         }
 
+        $phone = $this->formatPhoneNumber($data['phone']);
+        if ($phone === null) {
+            return $this->json(['error' => 'Invalid phone, expected +{digits}'], 422);
+        }
+
         $member = new Member();
         $member
             ->setName($name)
             ->setBirthDate($birthDate)
             ->setEmail($data['email'] ?? null)
-            ->setPhone($data['phone'] ?? null)
+            ->setPhone($phone)
             ->setAddress($data['address'] ?? null)
             ->setComment($data['comment'] ?? null);
 
@@ -108,12 +117,13 @@ final class MembersController extends AbstractController
     {
         $data = $request->request->all();
 
+        $emptyFields = $this->findEmptyRequiredFields($data, true);
+        if ($emptyFields) {
+            return $this->json(['error' => 'Fields cannot be empty: ' . implode(', ', $emptyFields)], 422);
+        }
+
         if (isset($data['name'])) {
-            $name = trim($data['name']);
-            if ($name === '') {
-                return $this->json(['error' => 'name cannot be empty'], 422);
-            }
-            $member->setName($name);
+            $member->setName(trim($data['name']));
         }
 
         if (isset($data['birth_date'])) {
@@ -132,7 +142,11 @@ final class MembersController extends AbstractController
         }
 
         if (isset($data['phone'])) {
-            $member->setPhone($data['phone'] ?: null);
+            $phone = $this->formatPhoneNumber($data['phone']);
+            if ($phone === null) {
+                return $this->json(['error' => 'Invalid phone, expected +{digits}'], 422);
+            }
+            $member->setPhone($phone);
         }
 
         if (isset($data['address'])) {
@@ -178,5 +192,27 @@ final class MembersController extends AbstractController
         $entityManager->flush();
 
         return $this->json(['status' => 'success']);
+    }
+
+    private function findEmptyRequiredFields(array $data, bool $onlyPresent = false): array
+    {
+        return array_values(array_filter(
+            self::REQUIRED_FIELDS,
+            fn(string $field) => (!$onlyPresent || array_key_exists($field, $data))
+                && trim((string) ($data[$field] ?? '')) === ''
+        ));
+    }
+
+    private function formatPhoneNumber(string $phone): ?string
+    {
+        $phone = preg_replace('/[\s\-().]/u', '', $phone);
+
+        if (str_starts_with($phone, '00')) {
+            $phone = '+' . substr($phone, 2);
+        }
+
+        $phone = '+' . ltrim($phone, '+');
+
+        return preg_match('/^\+\d{7,15}$/', $phone) ? $phone : null;
     }
 }
